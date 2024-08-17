@@ -18,13 +18,13 @@ export default function RootLayout({ children }) {
         <head>
         </head>
         <body className={`${inter.className} ${montserrat.className}`}>
-          {/*<SignedOut>
+          <SignedOut>
             <SignInButton />
           </SignedOut>
 
           <SignedIn>
             <UserButton />
-          </SignedIn>*/}
+          </SignedIn>
           {children}
 
 
