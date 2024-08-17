@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
           </SignedOut>
 
           <SignedIn>
-            <UserButton />
+            {/* <UserButton /> */}
           </SignedIn>
           {children}
 
