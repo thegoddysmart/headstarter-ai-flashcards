@@ -2,6 +2,8 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 import {
   Container,
   TextField,
@@ -31,15 +33,26 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import './FlashCardStyle.css'; 
+
+
 export default function Generate() {
   const [text, setText] = useState('')
   const [flashcards, setFlashcards] = useState([])
   const [setName, setSetName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useUser();
-const [snackbarOpen, setSnackbarOpen] = useState(false);
-const [snackbarMessage, setSnackbarMessage] = useState('');
-const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const { isSignedIn } = useUser();
+  const router = useRouter();
+
+  if (!isSignedIn) {
+    router.push('/sign-in');
+    return null;
+  }
 
 
   const handleSubmit = async () => {
