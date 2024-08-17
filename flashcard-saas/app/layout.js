@@ -1,8 +1,10 @@
-import { Inter } from "next/font/google";
+import { Inter,  Montserrat } from 'next/font/google';
+// import { Inter } from "next/font/google";
 import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import './globals.css';
 
 const inter = Inter({ subsets: ["latin"] });
+const montserrat = Montserrat({ subsets: ['latin'], weights: [100, 900] });
 
 export const metadata = {
   title: "Recall IQ Flashcards",
@@ -14,12 +16,8 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="en">
         <head>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap');
-          @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-        </style>
         </head>
-        <body className={inter.className}>
+        <body className={`${inter.className} ${montserrat.className}`}>
           {/*<SignedOut>
             <SignInButton />
           </SignedOut>
