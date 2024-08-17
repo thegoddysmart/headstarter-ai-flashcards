@@ -1,35 +1,38 @@
-/* styles.module.css */
+styles.module.css
 
 .body {
   margin: 0;
-  padding: 0 10px;
+  padding: 0;
   height: 100%;
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
+  background-color: #f4f4f4;
 }
 
 .headerContainer {
   display: flex;
   justify-content: space-between;
-  margin: 0 15px;
-  width: fill;
+  align-items: center;
+  padding: 20px;
+  background-color: #0751d1;
+  color: #fff;
+}
+
+.headerContainer h1 {
+  font-size: 2rem;
+  margin: 0;
 }
 
 .navigation {
   display: flex;
-  align-items: center;
-}
-
-.navigation span {
-  margin: 0 10px;
+  gap: 15px;
 }
 
 .navigation a {
+  color: #fff;
   text-decoration: none;
-  color: inherit;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .navigation a:hover {
@@ -37,98 +40,82 @@
 }
 
 .main {
-  min-height: 75vh;
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* Allows the content to wrap neatly */
+  flex-wrap: wrap;
+  padding: 20px;
+  gap: 20px;
 }
 
 .textContainer {
-  width: 50%; /* Adjust based on your layout */
-  padding-right: 10px; /* Add padding if needed */
-  box-sizing: border-box; /* Ensures padding doesn't affect width */
-  text-align: center;
-}
-
-.textContainer p {
-  margin: 0;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-size: 1.2rem;
-  line-height: 1.6; /* Helps with readability */
+  flex: 1;
+  min-width: 300px;
+  max-width: 50%;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .textContainer h2 {
-  font-size: 2.5rem;
+  font-size: 4.5rem;
+  margin-bottom: 20px;
   font-weight: 700;
-  margin-bottom: 10px;
-  font-family: "DM Serif Text", serif;
 }
 
-.body h1 {
-  margin-bottom: 0 10px;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 800;
-  font-size: 1.3rem;
+.textContainer p {
+  font-size: 1.1rem;
   line-height: 1.6;
+  color: #555;
 }
 
 .button {
-  margin: 5px 0px;
-  width: 250px;
-  height: 40px;
+  margin-top: 20px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 20px;
+  border-radius: 25px;
   background-color: #0751d1;
-  color: white;
-  font-size: medium;
+  color: #fff;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 800;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  transition: background-color 0.3s ease;
 }
 
-.button a{
-  text-decoration: none;
-  color:inherit;
+.button:hover {
+  background-color: #063d91;
 }
 
 .footer {
-  margin-top: 25px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: fill;
+  padding: 20px;
+  background-color: #1e1e1f;
+  color: #fff;
+  text-align: center;
 }
 
-.footer p, .footer h3 {
-  text-align: center;
-  font-size: small;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  line-height: 1.6;
+.footer h3 {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.footer p {
+  font-size: 0.9rem;
+  margin: 5px 0;
 }
 
 .footer div {
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-top: 10px;
+  justify-content: center;
+  gap: 15px;
+  margin: 10px 0;
 }
 
 .footer div a {
-  text-decoration: none;
-  color: inherit;
-  font-size: medium;
-  font-weight: 400;
-  margin: 5px 20px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.footer div a:hover {
+  color: #cfd8dc;
 }
