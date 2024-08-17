@@ -13,16 +13,23 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+        </style>
+        </head>
         <body className={inter.className}>
-          <SignedOut>
+          {/*<SignedOut>
             <SignInButton />
           </SignedOut>
 
           <SignedIn>
             <UserButton />
-          </SignedIn>
-          
+          </SignedIn>*/}
           {children}
+
+
         </body>
       </html>
     </ClerkProvider>
