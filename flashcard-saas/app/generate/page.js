@@ -15,6 +15,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
+  Snackbar, 
+  Alert,
   DialogActions
 } from '@mui/material';
 import { db } from '../../firebase';
@@ -28,13 +30,17 @@ import {
   deleteDoc,
   getDoc,
 } from 'firebase/firestore';
-
+import './FlashCardStyle.css'; 
 export default function Generate() {
   const [text, setText] = useState('')
   const [flashcards, setFlashcards] = useState([])
   const [setName, setSetName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useUser();
+const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
 
   const handleSubmit = async () => {
     if (!text.trim()) {
@@ -60,7 +66,7 @@ export default function Generate() {
       const data = await response.json()
       console.log(data)
 
-      setFlashcards(data)
+      setFlashcards(data.map(card => ({ ...card, flipped: false })));
     } catch (error) {
       console.error('Error generating flashcards:', error)
       alert('An error occurred while generating flashcards. Please try again.')
@@ -69,46 +75,59 @@ export default function Generate() {
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+  
 
   const saveFlashcards = async () => {
     if (!user) {
-      alert('You must be signed in to save flashcards.');
+      showSnackbar('You must be signed in to save flashcards.', 'error');
       return;
     }
-
+  
     if (!setName.trim()) {
-      alert('Please enter a name for your flashcard set.')
-      return
+      showSnackbar('Please enter a name for your flashcard set.', 'warning');
+      return;
     }
   
     try {
-      const userId = user.id; // Clerk user ID
-      const userDocRef = doc(collection(db, 'users'), user.id)
-      const userDocSnap = await getDoc(userDocRef)
+      const userId = user.id;
+      const userDocRef = doc(collection(db, 'users'), userId);
+      const userDocSnap = await getDoc(userDocRef);
   
-      const batch = writeBatch(db)
+      const batch = writeBatch(db);
   
       if (userDocSnap.exists()) {
-        const userData = userDocSnap.data()
-        const updatedSets = [...(userData.flashcardSets || []), { name: setName }]
-        batch.update(userDocRef, { flashcardSets: updatedSets })
+        const userData = userDocSnap.data();
+        const updatedSets = [...(userData.flashcardSets || []), { name: setName }];
+        batch.update(userDocRef, { flashcardSets: updatedSets });
       } else {
-        batch.set(userDocRef, { flashcardSets: [{ name: setName }] })
+        batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
       }
   
-      const setDocRef = doc(collection(userDocRef, 'flashcardSets'), setName)
-      batch.set(setDocRef, { flashcards })
+      const setDocRef = doc(collection(userDocRef, 'flashcardSets'), setName);
+      batch.set(setDocRef, { flashcards });
   
-      await batch.commit()
+      await batch.commit();
   
-      alert('Flashcards saved successfully!')
-      handleCloseDialog()
-      setSetName('')
+      showSnackbar('Flashcards saved successfully!', 'success');
+      handleCloseDialog();
+      setSetName('');
+      setFlashcards([]);
     } catch (error) {
-      console.error('Error saving flashcards:', error)
-      alert('An error occurred while saving flashcards. Please try again.')
+      console.error('Error saving flashcards:', error);
+      showSnackbar('An error occurred while saving flashcards. Please try again.', 'error');
     }
-  }
+  };
+  
+
+
+  const toggleFlip = (index) => {
+    setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
+  };
 
   return (
     <Container maxWidth="md">
@@ -136,24 +155,27 @@ export default function Generate() {
         </Button>
       </Box>
       
-      {/* We'll add flashcard display here */}
       {flashcards.length > 0 && (
         <>
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5" component="h2" gutterBottom>
               Generated Flashcards
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container spacing={30}>
               {flashcards.map((flashcard, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card>
-                    <CardContent>
-                      <Typography variant="h6">Front:</Typography>
-                      <Typography>{flashcard.front}</Typography>
-                      <Typography variant="h6" sx={{ mt: 2 }}>Back:</Typography>
-                      <Typography>{flashcard.back}</Typography>
-                    </CardContent>
-                  </Card>
+                <Grid item xs={10} sm={12} md={6} key={index}>
+                  <div className={`flashcard ${flashcard.flipped ? 'flipped' : ''}`} onClick={() => toggleFlip(index)}>
+                    <div className="flashcard-inner">
+                      <div className="flashcard-front">
+                        <Typography variant="h6">Question:</Typography>
+                        <Typography variant="p">{flashcard.front}</Typography>
+                      </div>
+                      <div className="flashcard-back">
+                        <Typography variant="h6">Answer:</Typography>
+                        <Typography>{flashcard.back}</Typography>
+                      </div>
+                    </div>
+                  </div>
                 </Grid>
               ))}
             </Grid>
@@ -190,6 +212,16 @@ export default function Generate() {
           </Dialog>
         </>
       )}
+      <Snackbar
+      open={snackbarOpen}
+      autoHideDuration={6000}
+      onClose={() => setSnackbarOpen(false)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        {snackbarMessage}
+      </Alert>
+    </Snackbar>
     </Container>
   )
 }
