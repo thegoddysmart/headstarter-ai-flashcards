@@ -1,68 +1,94 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { Container, Card, CardContent, Typography, Box, Button } from '@mui/material'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../../firebase'
-import { useUser } from '@clerk/nextjs'
+import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { db } from '../../firebase'; // Adjust the import based on your firebase config location
+import { collection, getDocs } from 'firebase/firestore';
+import { Container, Grid, Card, CardContent, Typography, Button } from '@mui/material';
+import { lightTheme, darkTheme } from '../generate/theme'; // Import your themes
+import { ThemeProvider, CssBaseline } from '@mui/material';
 
-export default function FlashcardSet() {
-  const { isLoaded, isSignedIn, user } = useUser()
-  const router = useRouter()
-  const { id } = router.query
-
-  const [flashcards, setFlashcards] = useState([])
-  const [currentCard, setCurrentCard] = useState(0)
-  const [showBack, setShowBack] = useState(false)
+export default function FlashcardSets() {
+  const [flashcardSets, setFlashcardSets] = useState([]);
+  const [darkMode, setDarkMode] = useState(false); // State for theme mode
+  const { user, isSignedIn } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    async function fetchFlashcards() {
-      if (!user || !id) return
-      const docRef = doc(collection(db, 'users'), user.id, 'flashcardSets', id)
-      const docSnap = await getDoc(docRef)
-      if (docSnap.exists()) {
-        setFlashcards(docSnap.data().flashcards)
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  useEffect(() => {
+    const fetchFlashcardSets = async () => {
+      if (user) {
+        const userId = user.id;
+        const flashcardSetsRef = collection(db, 'users', userId, 'flashcardSets');
+        const snapshot = await getDocs(flashcardSetsRef);
+
+        const sets = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        console.log("Fetched Flashcard Sets:", sets); // debug
+
+        setFlashcardSets(sets);
       }
+    };
+
+    if (isSignedIn) {
+      fetchFlashcardSets();
     }
-    fetchFlashcards()
-  }, [user, id])
+  }, [isSignedIn, user]);
 
-  const handleNextCard = () => {
-    setShowBack(false)
-    setCurrentCard((prevCard) => (prevCard + 1) % flashcards.length)
-  }
+  // if (!isSignedIn) {
+  //   router.push('/sign-in');
+  //   return null;
+  // }
 
-  const handleFlipCard = () => {
-    setShowBack((prevShowBack) => !prevShowBack)
-  }
-
-  if (!isLoaded || !isSignedIn) return null
+  const handleSetClick = (setId) => {
+    router.push(`/flashcards/${setId}`);
+  };
 
   return (
-    <Container maxWidth="sm">
-      {flashcards.length > 0 && (
-        <Box sx={{ mt: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">
-                {showBack ? 'Back:' : 'Front:'}
-              </Typography>
-              <Typography>
-                {showBack ? flashcards[currentCard].back : flashcards[currentCard].front}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-            <Button variant="outlined" onClick={handleFlipCard}>
-              Flip Card
-            </Button>
-            <Button variant="contained" color="primary" onClick={handleNextCard}>
-              Next Card
-            </Button>
-          </Box>
-        </Box>
-      )}
-    </Container>
-  )
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <Container maxWidth="md" sx={{ my: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Flashcard Sets
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => setDarkMode(!darkMode)}
+          sx={{ mb: 2 }}
+        >
+          Toggle {darkMode ? 'Light' : 'Dark'} Mode
+        </Button>
+
+        {flashcardSets.length === 0 ? (
+          <Typography variant="h6" color="textSecondary" gutterBottom>
+            No flashcard sets found. Create some in the Generate Flashcards section.
+          </Typography>
+        ) : (
+          <Grid container spacing={4}>
+            {flashcardSets.map((set) => (
+              <Grid item xs={12} sm={6} md={4} key={set.id}>
+                <Card
+                  sx={{ cursor: 'pointer', height: '100%' }}
+                  onClick={() => handleSetClick(set.id)}
+                >
+                  <CardContent>
+                    <Typography variant="h6" component="div">
+                      {set.id}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Container>
+    </ThemeProvider>
+  );
 }

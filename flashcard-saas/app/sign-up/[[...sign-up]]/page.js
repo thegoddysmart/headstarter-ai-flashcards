@@ -1,12 +1,3 @@
-// import { SignUp } from '@clerk/nextjs'
-
-// export default function Page() {
-//   return <SignUp path='sign-up'/>
-// }
-
-
-
-
 'use client';
 
 import { SignUp, useSignUp } from '@clerk/nextjs';
