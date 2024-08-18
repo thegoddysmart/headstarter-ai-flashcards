@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Container, TextField, Button, Typography, Box, Grid, Dialog, DialogTitle, DialogContent, DialogContentText, Snackbar, Alert, DialogActions, Card, CardContent, CardActions } from '@mui/material';
 import { db } from '../../firebase';
@@ -9,6 +9,7 @@ import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { lightTheme, darkTheme } from './theme'; // Import themes
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import './FlashCardStyle.css'; 
+import Footer from '../components/Footer';
 
 export default function Generate() {
   const [text, setText] = useState('');
@@ -18,9 +19,10 @@ export default function Generate() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-  const [darkMode, setDarkMode] = useState(false); // State for theme mode
+  const [darkMode, setDarkMode] = useState(false);
 
   const { user, isSignedIn } = useUser();
+  const firstName = user?.firstName || user?.primaryEmailAddress?.emailAddress || "Guest";
   const router = useRouter();
 
   useEffect(() => {
@@ -110,123 +112,134 @@ export default function Generate() {
   const toggleFlip = (index) => {
     setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
   };
-  const handleNavigate = () =>{
-    router.push('/saved')
+
+  const handleNavigate = () => {
+    router.push('/saved');
   };
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <CssBaseline />
-      <Container maxWidth="md">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Generate Flashcards
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={() => setDarkMode(!darkMode)}
-            sx={{ mb: 2 }}
-          >
-            Toggle {darkMode ? 'Light' : 'Dark'} Mode
-          </Button>
-          <TextField
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            label="Enter text"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            fullWidth
-          >
-            Generate Flashcards
-          </Button>
-          <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 4 }}
-          onClick={handleNavigate}
-        >
-          Go to Saved Sets
-        </Button>
-        </Box>
-        
-        {flashcards.length > 0 && (
-          <>
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h5" sx={{ mb: 3, fontWeight: 600}} component="h2" gutterBottom>
-                Generated Flashcards
+      
+          <Container maxWidth="md" sx={{ mb: 25}}>
+            {/* User information and settings */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
+              <Typography variant="h5" component="h1">
+                Generate Flashcards
               </Typography>
-              <Grid container spacing={4}>
-                {flashcards.map((flashcard, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Card variant="outlined" onClick={() => toggleFlip(index)} sx={{ cursor: 'pointer', height: '100%' }}>
-                      <CardContent>
-                        <Typography variant="h6" component="div">
-                          {flashcard.flipped ? 'Answer:' : 'Question:'}
-                        </Typography>
-                        <Typography variant="body2">
-                          {flashcard.flipped ? flashcard.back : flashcard.front}
-                        </Typography>
-                      </CardContent>
-                      <CardActions>
-                        {/* Add any additional actions if needed */}
-                      </CardActions>
-                    </Card>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="body1">Hello, {firstName}</Typography>
+                <UserButton />
+              </Box>
+            </Box>
+
+            <Button
+              variant="contained"
+              onClick={() => setDarkMode(!darkMode)}
+              sx={{ mb: 2 }}
+            >
+              Toggle {darkMode ? 'Light' : 'Dark'} Mode
+            </Button>
+
+            <TextField
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              label="Enter text"
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              sx={{ mb: 2 }}
+            />
+            
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              fullWidth
+            >
+              Generate Flashcards
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{ mt: 4 }}
+              onClick={handleNavigate}
+            >
+              Go to Saved Sets
+            </Button>
+
+            {flashcards.length > 0 && (
+              <>
+                <Box sx={{ mt: 4 }}>
+                  <Typography variant="h5" component="h2" gutterBottom>
+                    Generated Flashcards
+                  </Typography>
+                  <Grid container spacing={4}>
+                    {flashcards.map((flashcard, index) => (
+                      <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Card onClick={() => toggleFlip(index)} sx={{ cursor: 'pointer', height: '100%' }}>
+                          <CardContent>
+                            <Typography variant="h6">
+                              {flashcard.flipped ? 'Answer:' : 'Question:'}
+                            </Typography>
+                            <Typography variant="body2">
+                              {flashcard.flipped ? flashcard.back : flashcard.front}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
                   </Grid>
-                ))}
-              </Grid>
-            </Box>
+                </Box>
 
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-              <Button variant="contained" color="primary" onClick={handleOpenDialog}>
-                Save Flashcards
-              </Button>
-            </Box>
+                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                  <Button variant="contained" color="primary" onClick={handleOpenDialog} sx={{ mb: 5}}>
+                    Save Flashcards
+                  </Button>
+                </Box>
 
-            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-              <DialogTitle>Save Flashcard Set</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  Please enter a name for your flashcard set.
-                </DialogContentText>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  label="Set Name"
-                  type="text"
-                  fullWidth
-                  value={setName}
-                  onChange={(e) => setSetName(e.target.value)}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseDialog}>Cancel</Button>
-                <Button onClick={saveFlashcards} color="primary">
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </>
-        )}
+                <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+                  <DialogTitle>Save Flashcard Set</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      Please enter a name for your flashcard set.
+                    </DialogContentText>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Set Name"
+                      type="text"
+                      fullWidth
+                      value={setName}
+                      onChange={(e) => setSetName(e.target.value)}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={saveFlashcards} color="primary">
+                      Save
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </>
+            )}
 
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Container>
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={6000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </Container>
+
+          <Footer />
+      
     </ThemeProvider>
-  )
+  );
 }

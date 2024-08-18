@@ -5,10 +5,10 @@ import styles from './page.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-
 import { Container, Typography, Grid, Card, CardActionArea, CardContent } from '@mui/material';
 import { motion } from 'framer-motion';
 import { fadeIn, slideUp } from './animations'; // Define these animations or import from your animation file
+import Footer from './components/Footer';
 
 export default function Home() {
   const { isSignedIn } = useUser();
@@ -20,6 +20,11 @@ export default function Home() {
     } else {
       router.push('/sign-up');
     }
+  };
+
+  const handlePlanChange = (plan) => {
+    // Alert indicating new feature is coming soon
+    alert(`New Feature Coming Soon: ${plan} Plan`);
   };
 
   return (
@@ -91,27 +96,7 @@ export default function Home() {
         </Grid>
       </Container>
 
-      <footer className={styles.footer}>
-        <section>
-          <h3>Follow Us On:</h3>
-          <div>
-            <Link href="https://twitter.com">
-              <Image src='/dark-mode/twitterx.svg' width={25} height={25} alt="Twitter" />
-            </Link>
-            <Link href="https://facebook.com">
-              <Image src='/dark-mode/facebook.svg' width={25} height={25} alt="Facebook" />
-            </Link>
-            <Link href="https://instagram.com">
-              <Image src='/dark-mode/instagram.svg' width={25} height={25} alt="Instagram" />
-            </Link>
-            <Link href="https://gmail.com">
-              <Image src='/dark-mode/gmail.svg' width={25} height={25} alt="Gmail" />
-            </Link>
-          </div>
-        </section>
-        <p>&copy; 2021 Recall IQ FlashCards</p>
-        <p>Proudly Ghanaian ❤️</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
