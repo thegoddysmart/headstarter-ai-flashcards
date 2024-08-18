@@ -128,9 +128,21 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const toggleFlip = (index) => {
     setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
   };
+  const handleNavigate = () =>{
+    router.push('/saved')
+  };
+  
 
   return (
     <Container maxWidth="md">
+      <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 4 }}
+          onClick={handleNavigate}
+        >
+          Go to Saved Sets
+        </Button>
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Generate Flashcards
