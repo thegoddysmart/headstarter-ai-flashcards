@@ -8,6 +8,7 @@ import {
   Typography,
   Box,
   Grid,
+  Button,
   Card,
   CardContent,
 } from '@mui/material';
@@ -48,7 +49,9 @@ export default function SavedFlashcards() {
   const handleSetClick = (setId) => {
     router.push(`/saved/${setId}`);
   };
-  
+  const handleNavigate = () =>{
+    router.push('/generate')
+  };
   
 
   return (
@@ -59,7 +62,7 @@ export default function SavedFlashcards() {
           sx={{ mt: 4 }}
           onClick={handleNavigate}
         >
-          Go to Saved Sets
+          Generate New Cards
         </Button>
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>

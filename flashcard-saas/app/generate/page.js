@@ -110,6 +110,9 @@ export default function Generate() {
   const toggleFlip = (index) => {
     setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
   };
+  const handleNavigate = () =>{
+    router.push('/saved')
+  };
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
@@ -144,6 +147,14 @@ export default function Generate() {
           >
             Generate Flashcards
           </Button>
+          <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 4 }}
+          onClick={handleNavigate}
+        >
+          Go to Saved Sets
+        </Button>
         </Box>
         
         {flashcards.length > 0 && (
