@@ -32,7 +32,7 @@ export default function FlashcardSetPage({ params }) {
         if (flashcardSetDoc.exists()) {
           const flashcardSetData = flashcardSetDoc.data();
           console.log('Flashcard Set Data:', flashcardSetData);
-          setFlashcards(flashcardSetData.flashcards.slice(0, 10)); // Limit to 10 flashcards
+          setFlashcards(flashcardSetData.flashcards.slice(0, 10)); 
         } else {
           console.error('Flashcard set not found');
         }
@@ -44,12 +44,7 @@ export default function FlashcardSetPage({ params }) {
     fetchFlashcards();
   }, [userId, setId]);
 
-  const handleFlip = (index) => {
-    setFlipped((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  }
+  
   const toggleFlip = (index) => {
     setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
   };
