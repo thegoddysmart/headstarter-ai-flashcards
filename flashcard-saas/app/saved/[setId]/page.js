@@ -1,96 +1,169 @@
-'use client';
+'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Container, Typography, Box, Grid, Card, CardContent,Button } from '@mui/material';
 import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { Container, Button, Typography, Box, Grid, Snackbar, Alert, Card, CardContent, CardActions } from '@mui/material';
 import { db } from '../../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import styles from '../../generate/FlashCardStyle.css';
-
+import { lightTheme, darkTheme } from '../../generate/theme'; // Import themes
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import '../../generate/FlashCardStyle.css'; 
+import Footer from '../../components/Footer';
 
 export default function FlashcardSetPage({ params }) {
-  const [flashcards, setFlashcards] = useState([]);
-  const [flipped, setFlipped] = useState({});
   const { setId } = params;
-  const { user } = useUser();
+  const [flashcards, setFlashcards] = useState([]);
+  const [darkMode, setDarkMode] = useState(false); // State for theme mode
+  const [loading, setLoading] = useState(true); // Loading state
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const { user, isSignedIn } = useUser();
   const router = useRouter();
-  const userId = user?.id;
 
   useEffect(() => {
-    const fetchFlashcards = async () => {
-      if (!userId) {
-        console.error('User is not logged in');
-        return;
-      }
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
+  useEffect(() => {
+    const fetchFlashcardSet = async () => {
       try {
-        const userDocRef = doc(db, 'users', userId);
-        const flashcardSetDocRef = doc(userDocRef, 'flashcardSets', setId);
-        const flashcardSetDoc = await getDoc(flashcardSetDocRef);
+        const userId = user.id;
+        const decodedSetId = decodeURIComponent(setId); // Decode setId to handle spaces/special characters
+        const flashcardSetRef = doc(db, 'users', userId, 'flashcardSets', decodedSetId);
         
+        console.log(`Fetching flashcards from path: users/${userId}/flashcardSets/${decodedSetId}`);
+        
+        const flashcardSetDoc = await getDoc(flashcardSetRef);
+
         if (flashcardSetDoc.exists()) {
-          const flashcardSetData = flashcardSetDoc.data();
-          console.log('Flashcard Set Data:', flashcardSetData);
-          setFlashcards(flashcardSetData.flashcards.slice(0, 10)); 
+          setFlashcards(flashcardSetDoc.data().flashcards);
+          console.log('Flashcards:', flashcardSetDoc.data().flashcards);
         } else {
-          console.error('Flashcard set not found');
+          throw new Error('Flashcard set not found');
         }
       } catch (error) {
-        console.error('Error fetching flashcards:', error);
+        console.error(error);
+        showSnackbar('Error loading flashcards.', 'error');
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
       }
     };
 
-    fetchFlashcards();
-  }, [userId, setId]);
+    if (user && setId) {
+      fetchFlashcardSet();
+    }
+  }, [user, setId]);
 
-  
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
   const toggleFlip = (index) => {
     setFlashcards(flashcards.map((card, i) => i === index ? { ...card, flipped: !card.flipped } : card));
   };
-  const handleNavigate = () =>{
+
+  const handleNavigate = () => {
     router.push('/saved')
-  };
-  
-  return (
-    <Container maxWidth="md">
-         <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 4 }}
-          onClick={handleNavigate}
-        >
-          Go to Saved Sets
-        </Button>
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Flashcards for Set: {setId}
-        </Typography>
-        {flashcards.length > 0 ? (
-          <Grid container spacing={30}>
-          {flashcards.map((flashcard, index) => (
-            <Grid item xs={10} sm={12} md={6} key={index}>
-              <div className={`flashcard ${flashcard.flipped ? 'flipped' : ''}`} onClick={() => toggleFlip(index)}>
-                <div className="flashcard-inner">
-                  <div className="flashcard-front">
-                    <Typography variant="h6">Question:</Typography>
-                    <Typography variant="p">{flashcard.front}</Typography>
-                  </div>
-                  <div className="flashcard-back">
-                    <Typography variant="h6">Answer:</Typography>
-                    <Typography>{flashcard.back}</Typography>
-                  </div>
-                </div>
-              </div>
-            </Grid>
-          ))}
-        </Grid>
-        ) : (
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            No flashcards found for this set.
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+        <CssBaseline />
+        <Container maxWidth="md">
+          <Typography variant="h5" component="h2" gutterBottom>
+            Loading flashcards...
           </Typography>
-        )} 
-      </Box>
-    </Container>
+        </Container>
+      </ThemeProvider>
+    );
+  }
+
+  // No flashcards found state
+  if (!flashcards.length) {
+    return (
+      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+        <CssBaseline />
+        <Container maxWidth="md">
+          <Typography variant="h5" component="h2" gutterBottom>
+            No flashcards available.
+          </Typography>
+        </Container>
+      </ThemeProvider>
+    );
+  }
+
+  return (
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <Container maxWidth="md" sx={{ mb: 4 }}>
+        <Box sx={{ my: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Flashcard Set: {setId}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={handleNavigate}
+            sx={{ mb: 2, mr: 4 }}
+          >
+            Go Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => setDarkMode(!darkMode)}
+            sx={{ mb: 2 }}
+          >
+            Toggle {darkMode ? 'Light' : 'Dark'} Mode
+          </Button>
+        </Box>
+
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }} component="h2">
+            Flashcards
+          </Typography>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Flip to view the answers at the back
+          </Typography>
+          <Grid container spacing={4}>
+            {flashcards.map((flashcard, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Card variant="outlined" onClick={() => toggleFlip(index)} sx={{ cursor: 'pointer', height: '100%' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="div">
+                      {flashcard.flipped ? 'Answer:' : 'Question:'}
+                    </Typography>
+                    <Typography variant="body2">
+                      {flashcard.flipped ? flashcard.back : flashcard.front}
+                    </Typography>
+                  </CardContent>
+                  <CardActions>
+                    {/* Add any additional actions if needed */}
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Container>
+
+      <Footer />
+    </ThemeProvider>
   );
 }
